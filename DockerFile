@@ -1,0 +1,27 @@
+FROM fnproject/fn-java-fdk-build:jdk11-1.0.110 as build-stage
+WORKDIR /function
+
+ENV MAVEN_OPTS -DproxySet=true -DproxyHost=www-proxy.us.oracle.com -DproxyPort=80 -Dmaven.repo.local=/usr/share/maven/ref/repository
+
+# Copy in local jars from either another image or local filesystem
+COPY nosqldriver.jar local-jars/
+
+# Install each local jar into maven repository
+RUN mvn install:install-file -Dfile=local-jars/nosqldriver.jar \
+  -DgroupId=com.oracle.nosql -DartifactId=nosqldriver \
+  -Dversion=1.0 -Dpackaging=jar -DgeneratePom=true
+
+# Copy in pom.xml *Updated with the dependencies you just installed*
+ADD pom.xml /function/pom.xml
+RUN ["mvn", "package", "dependency:copy-dependencies", "-DincludeScope=runtime", "-DskipTests=true", "-Dmdep.prependGroupId=true", "-DoutputDirectory=target", "--fail-never"]
+
+# Copy in source code
+ADD src /function/src
+RUN ["mvn", "package"]
+
+FROM fnproject/fn-java-fdk:jre11-1.0.110
+WORKDIR /function
+COPY --from=build-stage /function/target/*.jar /function/app/
+
+# New command:
+CMD ["com.example.fn.HelloFunction::handleRequest"]
