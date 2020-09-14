@@ -3,6 +3,7 @@ Connecting to nosql from oracle functions using resource principal authenticatio
 
 •	Following Function guideline to set up function.
         https://docs.cloud.oracle.com/en-us/iaas/Content/Functions/Concepts/functionsprerequisites.htm
+        
 •	Create Function Application:
         https://docs.cloud.oracle.com/en-us/iaas/Content/Functions/Tasks/functionscreatingapps.htm
 
@@ -15,5 +16,7 @@ If seeing function timeout, update func.yaml to increase.
 Fn: Error invoking function. status: 504 message: Timed out
 
 Add "timeout: 120" to func.yaml
+
+Update the docker file to use the latest image of fdks
 
 
